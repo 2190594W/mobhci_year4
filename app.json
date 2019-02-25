@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "xPlore - Bike & Scooter",
+    "slug": "xploreBikeScooter",
+    "privacy": "public",
+    "sdkVersion": "32.0.0",
+    "platforms": [
+      "ios",
+      "android"
+    ],
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "splash": {
+      "image": "./assets/images/splash_android.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff",
+    },
+    "androidStatusBar": {
+      "barStyle": "light-content",
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.mob-hci.xplore-bs",
+      "splash": {
+        "image": "./assets/images/splash_ios.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#ffffff",
+      },
+    },
+    "android": {
+      "package": "com.mob_hci.xplore_bs",
+    }
+  }
+}
