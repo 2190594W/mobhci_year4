@@ -9,23 +9,33 @@ import {
   View,
 } from 'react-native';
 import { WebBrowser, MapView, Location, Permissions, Icon } from 'expo';
+import { getDistance } from 'geolib';
 
 import { MonoText } from '../components/StyledText';
 
 import mapStyle from '../constants/mapstyle';
 
+const ACCURACY_THRESHOLD = 10; // 10 meters
+const DISTANCE_THRESHOLD = 6; // 6 meters
+
 export default class MapScreen extends React.Component {
   state = {
     mapRegion: {
-      latitude: 37.78825,
-      longitude: -122.4324,
+      latitude: 55.8536939,
+      longitude: -4.2424968,
       latitudeDelta: 0.0922,
       longitudeDelta: 0.0421,
     },
     hasLocationPermissions: false,
     locationResult: null,
     currentMapRegion: null,
-    currentRoute: {},
+    currentUserLocation: null,
+    currentRoute: [],
+    currentTravelDistance: 0,
+    lastValidCoord:  null,
+    recordingRoute: false,
+    startLocation: null,
+    marginBottom: 1,
   };
 
   componentDidMount() {
@@ -46,14 +56,51 @@ export default class MapScreen extends React.Component {
     let mRegion = { latitude: location.coords.latitude, longitude: location.coords.longitude, latitudeDelta: 0.0922, longitudeDelta: 0.0421 };
 
     this.setState({ locationResult: JSON.stringify(location) });
+    this.setState({ currentMapRegion: mRegion });
+    this.setState({ currentUserLocation: mRegion });
+
+    console.log(this.state.locationResult);
+    console.log(this.state.currentMapRegion);
 
     // Center the map on the location we just fetched.
     // this.setState({mapRegion: mRegion}); // uncomment to 'snap' to current location
     this._mapView.animateToRegion(mRegion, 2000);
   };
 
+  _onMapReady = () => this.setState({marginBottom: 0});
+
   _onStartRoute = async () => {
-    console.log("started route");
+    this.setState({
+      startLocation: this.state.currentMapRegion,
+    });
+    (this.state.recordingRoute) ? console.log("finished route") : console.log("started route");
+    this.setState({
+      recordingRoute: !this.state.recordingRoute,
+    });
+  };
+
+  _onUserLocationChange = async (event) => {
+    let coords = event.nativeEvent.coordinate;
+    this.setState({ currentUserLocation: coords });
+    if (this.state.recordingRoute) {
+      this.state.currentRoute.push(coords);
+      let route = this.state.currentRoute;
+      if (route.length > 1) {
+        if (coords.accuracy < ACCURACY_THRESHOLD) {
+          if (this.state.lastValidCoord == null) {
+            this.setState({ lastValidCoord: coords });
+          } else {
+            let distanceTravelled = getDistance(this.state.lastValidCoord, coords, 0.1, 3);
+            if (distanceTravelled > DISTANCE_THRESHOLD) {
+              console.log(distanceTravelled);
+              this.setState({ lastValidCoord: coords });
+              this.state.currentTravelDistance += distanceTravelled;
+            }
+          }
+        }
+        console.log("Distance:", this.state.currentTravelDistance);
+      }
+    }
   };
 
   static navigationOptions = {
@@ -65,14 +112,21 @@ export default class MapScreen extends React.Component {
       <View style={styles.container}>
         <MapView
           ref = {(mapView) => { this._mapView = mapView; }}
-          style={{ flex: 1 }}
-          region={this.state.mapRegion}
+          style={{ flex: 1, marginBottom: this.state.marginBottom}}
+          initialRegion={this.state.mapRegion}
+          provider={"google"}
           customMapStyle={mapStyle}
           showsUserLocation={true}
-          followsUserLocation={true}
           showsMyLocationButton={true}
           loadingEnabled={true}
+          onMapReady={this._onMapReady}
+          onUserLocationChange={this._onUserLocationChange}
         />
+        <View
+          style={styles.distanceValue}
+        >
+          <Text color="#ffffff">{this.state.currentTravelDistance} meters</Text>
+        </View>
         <TouchableOpacity
           onPress={this._onStartRoute}
           style={styles.startButton}
@@ -221,5 +275,8 @@ const styles = StyleSheet.create({
     width: 50,
     paddingLeft: 5,
     textAlign: 'center'
+  },
+  distanceValue: {
+    elevation: 6,
   }
 });
