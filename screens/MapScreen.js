@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { WebBrowser, MapView, Location, Permissions, Icon } from 'expo';
 import { getDistance } from 'geolib';
+import AnimateNumber from '@bankify/react-native-animate-number'
 
 import { MonoText } from '../components/StyledText';
 
@@ -125,7 +126,20 @@ export default class MapScreen extends React.Component {
         <View
           style={styles.distanceValue}
         >
-          <Text color="#ffffff">{this.state.currentTravelDistance} meters</Text>
+          <AnimateNumber
+            value={this.state.currentTravelDistance}
+            timing="easeOut"
+            renderContent={(value: number) => (
+              <Text style={styles.distanceText}>{value}</Text>
+            )}
+            formatter={(val) => {
+              if (val > 1000) {
+                return (parseFloat(val)/1000).toFixed(1) + ' km'
+              } else {
+                return parseFloat(val).toFixed(1) + ' m'
+              }
+            }}
+          />
         </View>
         <TouchableOpacity
           onPress={this._onStartRoute}
@@ -173,81 +187,6 @@ const styles = StyleSheet.create({
     lineHeight: 19,
     textAlign: 'center',
   },
-  contentContainer: {
-    paddingTop: 30,
-  },
-  welcomeContainer: {
-    alignItems: 'center',
-    marginTop: 10,
-    marginBottom: 20,
-  },
-  welcomeImage: {
-    width: 100,
-    height: 80,
-    resizeMode: 'contain',
-    marginTop: 3,
-    marginLeft: -10,
-  },
-  getStartedContainer: {
-    alignItems: 'center',
-    marginHorizontal: 50,
-  },
-  homeScreenFilename: {
-    marginVertical: 7,
-  },
-  codeHighlightText: {
-    color: 'rgba(96,100,109, 0.8)',
-  },
-  codeHighlightContainer: {
-    backgroundColor: 'rgba(0,0,0,0.05)',
-    borderRadius: 3,
-    paddingHorizontal: 4,
-  },
-  getStartedText: {
-    fontSize: 17,
-    color: 'rgba(96,100,109, 1)',
-    lineHeight: 24,
-    textAlign: 'center',
-  },
-  tabBarInfoContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    ...Platform.select({
-      ios: {
-        shadowColor: 'black',
-        shadowOffset: { height: -3 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-      },
-      android: {
-        elevation: 20,
-      },
-    }),
-    alignItems: 'center',
-    backgroundColor: '#fbfbfb',
-    paddingVertical: 20,
-  },
-  tabBarInfoText: {
-    fontSize: 17,
-    color: 'rgba(96,100,109, 1)',
-    textAlign: 'center',
-  },
-  navigationFilename: {
-    marginTop: 5,
-  },
-  helpContainer: {
-    marginTop: 15,
-    alignItems: 'center',
-  },
-  helpLink: {
-    paddingVertical: 15,
-  },
-  helpLinkText: {
-    fontSize: 14,
-    color: '#2e78b7',
-  },
   startButton: {
     borderWidth: 1,
     borderColor:'rgba(0,0,0,0.2)',
@@ -278,5 +217,13 @@ const styles = StyleSheet.create({
   },
   distanceValue: {
     elevation: 6,
+    alignItems:'center',
+    justifyContent:'center',
+    position: 'absolute',
+    padding: 20,
+  },
+  distanceText: {
+    color: '#ffffff',
+    fontSize: 40,
   }
 });
