@@ -7,6 +7,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  AsyncStorage,
 } from 'react-native';
 import { WebBrowser, MapView, Location, Permissions, Icon } from 'expo';
 import { getDistance } from 'geolib';
@@ -33,6 +34,10 @@ export default class MapScreen extends React.Component {
     currentUserLocation: null,
     currentRoute: [],
     currentTravelDistance: 0,
+    currentTravelScore: 0,
+    currentBicycle: true,
+    currentScooter: false,
+    transportMultiplier: 1.5,
     lastValidCoord:  null,
     recordingRoute: false,
     startLocation: null,
@@ -41,6 +46,8 @@ export default class MapScreen extends React.Component {
 
   componentDidMount() {
     this._getLocationAsync();
+    this._getLastScore();
+    this._getCurrentTransport();
   }
 
   _getLocationAsync = async () => {
@@ -68,6 +75,38 @@ export default class MapScreen extends React.Component {
     this._mapView.animateToRegion(mRegion, 2000);
   };
 
+  _getLastScore = async () => {
+    try {
+      const score = await AsyncStorage.getItem('@xPlore_Store:currScore');
+      if (score !== null) {
+        this.state.currentTravelScore = parseFloat(score);
+        console.info("Updated score from storage");
+      }
+    } catch (error) {
+      console.log("Error with retrieving score: ", error);
+    }
+  };
+
+  _getCurrentTransport = async () => {
+    try {
+      const transport = await AsyncStorage.getItem('@xPlore_Store:currTransport');
+      if (transport !== null) {
+        if (transport === 'scooter') {
+          this.state.currentBicycle = false;
+          this.state.currentScooter = true;
+          this.state.transportMultiplier = 3;
+        } else {
+          this.state.currentBicycle = true;
+          this.state.currentScooter = false;
+          this.state.transportMultiplier = 1.5;
+        }
+        console.info("Updated transport from storage");
+      }
+    } catch (error) {
+      console.log("Error with retrieving transport: ", error);
+    }
+  };
+
   _onMapReady = () => this.setState({marginBottom: 0});
 
   _onStartRoute = async () => {
@@ -78,6 +117,7 @@ export default class MapScreen extends React.Component {
     this.setState({
       recordingRoute: !this.state.recordingRoute,
     });
+    console.log(this._mapView.props.followsUserLocation);
   };
 
   _onUserLocationChange = async (event) => {
@@ -96,11 +136,35 @@ export default class MapScreen extends React.Component {
               console.log(distanceTravelled);
               this.setState({ lastValidCoord: coords });
               this.state.currentTravelDistance += distanceTravelled;
+              let currScore = this.state.currentTravelScore + (distanceTravelled * this.state.transportMultiplier);
+              try {
+                this.state.currentTravelScore = currScore;
+                await AsyncStorage.setItem('@xPlore_Store:currScore', currScore.toFixed(1));
+              } catch (error) {
+                console.log("Error with storing: ", error);
+              }
+
             }
           }
         }
-        console.log("Distance:", this.state.currentTravelDistance);
       }
+    }
+  };
+
+  _toggleTransportType = async (event) => {
+    let newTransport = "scooter";
+    if (this.state.currentScooter === true) {
+      newTransport = "bicycle";
+    }
+    try {
+      this.setState({
+        currentBicycle: !this.state.currentBicycle,
+        currentScooter: !this.state.currentScooter,
+        transportMultiplier: (this.state.transportMultiplier === 3) ? 1.5 : 3,
+      });
+      await AsyncStorage.setItem('@xPlore_Store:currTransport', newTransport);
+    } catch (error) {
+      console.log("Error with storing transport: ", error);
     }
   };
 
@@ -119,6 +183,7 @@ export default class MapScreen extends React.Component {
           customMapStyle={mapStyle}
           showsUserLocation={true}
           showsMyLocationButton={true}
+          followsUserLocation={true}
           loadingEnabled={true}
           onMapReady={this._onMapReady}
           onUserLocationChange={this._onUserLocationChange}
@@ -130,49 +195,61 @@ export default class MapScreen extends React.Component {
             value={this.state.currentTravelDistance}
             timing="easeOut"
             renderContent={(value: number) => (
-              <Text style={styles.distanceText}>{value}</Text>
+              <View style={{flexDirection:'row'}}>
+                <Text style={styles.distanceText}>{value}</Text>
+                <Icon.Ionicons name={'ios-compass'}  size={40} color={(this.state.recordingRoute) ? "#3bcd91" : "#777777"} style={{marginTop: "auto", marginBottom: "auto", marginLeft: "4%"}}/>
+              </View>
             )}
             formatter={(val) => {
               if (val > 1000) {
-                return (parseFloat(val)/1000).toFixed(1) + ' km'
+                return (parseFloat(val)/1000).toFixed(2) + ' km'
               } else {
                 return parseFloat(val).toFixed(1) + ' m'
               }
             }}
           />
+          <AnimateNumber
+            value={parseFloat(this.state.currentTravelScore)}
+            timing="easeOut"
+            renderContent={(value: number) => (
+              <Text style={styles.scoreText}>{value} (+{this.state.transportMultiplier})</Text>
+            )}
+            formatter={(val) => {
+              return parseFloat(val).toFixed(1).replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+            }}
+          />
         </View>
+        {this.state.currentBicycle && this.state.recordingRoute &&
+          <TouchableOpacity
+            onPress={this._toggleTransportType}
+            style={styles.transportButton}
+          >
+            <Image
+              source={require('../assets/images/bicycleLogo.png')}
+              style={styles.transportIcon}
+            />
+          </TouchableOpacity>
+        }
+        {this.state.currentScooter && this.state.recordingRoute &&
+          <TouchableOpacity
+            onPress={this._toggleTransportType}
+            style={styles.transportButton}
+          >
+            <Image
+              source={require('../assets/images/scooterLogo.png')}
+              style={styles.transportIcon}
+            />
+          </TouchableOpacity>
+        }
         <TouchableOpacity
           onPress={this._onStartRoute}
           style={styles.startButton}
         >
-          <Icon.Ionicons name={'ios-play'}  size={50} color="#ffffff" style={styles.playIcon}/>
+          <Icon.Ionicons name={(this.state.recordingRoute) ? 'ios-pause' : 'ios-play'}  size={50} color="#ffffff" style={(this.state.recordingRoute) ? styles.pauseIcon : styles.playIcon}/>
         </TouchableOpacity>
       </View>
     );
   }
-
-  _maybeRenderDevelopmentModeWarning() {
-    if (__DEV__) {
-      return (
-        <Text style={styles.developmentModeText}>
-          Development mode is enabled, your app will be slower but you can use useful development
-          tools. {learnMoreButton}
-        </Text>
-      );
-    } else {
-      return (
-        <Text style={styles.developmentModeText}>
-          You are not in development mode, your app will run at full speed.
-        </Text>
-      );
-    }
-  }
-
-  _handleHelpPress = () => {
-    WebBrowser.openBrowserAsync(
-      'https://docs.expo.io/versions/latest/guides/up-and-running.html#can-t-see-your-changes'
-    );
-  };
 }
 
 const styles = StyleSheet.create({
@@ -192,14 +269,10 @@ const styles = StyleSheet.create({
     borderColor:'rgba(0,0,0,0.2)',
     alignItems:'center',
     justifyContent:'center',
-    width: 70,
-    height: 70,
-    backgroundColor:'#01a699',
+    backgroundColor:'#3bcd91',
     borderRadius: 100,
     position: 'absolute',
-    top: '88%',
     alignSelf: 'flex-end',
-    right: '4%',
     shadowColor: 'black',
     shadowOffset: {
       weight: 6,
@@ -208,6 +281,52 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     shadowOpacity: 0.6,
     elevation: 6,
+    ...Platform.select({
+      ios: {
+        top: '84%',
+        width: 55,
+        height: 55,
+        right: '2.5%',
+      },
+      android: {
+        top: '88%',
+        width: 70,
+        height: 70,
+        right: '4%',
+      },
+    }),
+  },
+  transportButton: {
+    borderWidth: 1,
+    borderColor:'rgba(0,0,0,0.2)',
+    alignItems:'center',
+    justifyContent:'center',
+    backgroundColor:'#3bcd91',
+    borderRadius: 100,
+    position: 'absolute',
+    alignSelf: 'flex-end',
+    shadowColor: 'black',
+    shadowOffset: {
+      weight: 6,
+      height: 3
+    },
+    shadowRadius: 2,
+    shadowOpacity: 0.6,
+    elevation: 6,
+    ...Platform.select({
+      ios: {
+        top: '76%',
+        width: 55,
+        height: 55,
+        right: '2.5%',
+      },
+      android: {
+        top: '77%',
+        width: 70,
+        height: 70,
+        right: '4%',
+      },
+    }),
   },
   playIcon: {
     height: 50,
@@ -215,15 +334,37 @@ const styles = StyleSheet.create({
     paddingLeft: 5,
     textAlign: 'center'
   },
+  pauseIcon: {
+    height: 50,
+    width: 50,
+    textAlign: 'center'
+  },
+  transportIcon: {
+    width: 35,
+    height: 35,
+    resizeMode: 'contain'
+  },
   distanceValue: {
     elevation: 6,
     alignItems:'center',
     justifyContent:'center',
     position: 'absolute',
-    padding: 20,
+    paddingLeft: 20,
+    ...Platform.select({
+      ios: {
+        paddingTop: 50,
+      },
+      android: {
+        paddingTop: 30,
+      },
+    }),
   },
   distanceText: {
     color: '#ffffff',
     fontSize: 40,
+  },
+  scoreText: {
+    color: '#dddddd',
+    fontSize: 26,
   }
 });
