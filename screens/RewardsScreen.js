@@ -9,6 +9,8 @@ import {
   Image,
   Dimensions,
   TouchableOpacity,
+  Button,
+  Modal,
 } from 'react-native';
 import { Icon } from 'expo';
 
@@ -19,6 +21,7 @@ const deviceWidth = Dimensions.get('window').width;
 export default class RewardsScreen extends React.Component {
   state = {
     currentTravelScore: 0,
+    modalOpacity: 0,
   };
 
   componentDidMount() {
@@ -43,6 +46,13 @@ export default class RewardsScreen extends React.Component {
     }
   };
 
+  setModalVisible(modalId, visible) {
+    this.setState({
+      [`${modalId}ModalVisible`]: visible,
+
+    });
+  }
+
   render() {
 
     const rewardLogos = [
@@ -58,20 +68,71 @@ export default class RewardsScreen extends React.Component {
       require('../assets/images/rewardLogos/subwayResLogo.png'),
       require('../assets/images/rewardLogos/pizzaExpressLogo.png'),
     ];
+    const rewardTitles = ["Greggs", "Costa", "Taco Mazama", "Pret a Manger",
+      "SPT - Subway", "Tesco", "Starbucks", "Boots", "Waitrose", "Subway", "Pizza Express"
+    ];
+    const rewardPckgs = {
+      "Greggs": []
+    };
     const rewards = [];
 
     for (var rewardCount = 0; rewardCount < rewardLogos.length; rewardCount++) {
+      let rewardID = `reward${rewardCount}`;
+      let rewardIDModal = `reward${rewardCount}ModalVisible`;
       rewards.push(
         <TouchableOpacity
-          key={`reward_${rewardCount}`}
+          key={`reward${rewardCount}`}
           style={styles.rewardContainer}
+          onPress={() => {
+            this.setModalVisible(rewardID, true);
+          }}
         >
           <Image
             source={rewardLogos[rewardCount]}
             style={styles.rewardBrandIcon}
           />
-        </TouchableOpacity>
+        </TouchableOpacity>,
+        <Modal
+          key={`reward${rewardCount}Modal`}
+          style={styles.rewardModal}
+          transparent={true}
+          animationType="slide"
+          transparent={true}
+          visible={this.state[rewardIDModal]}
+          onRequestClose={() => {
+            Alert.alert('Modal has been closed.');
+          }}
+        >
+          <TouchableOpacity
+            style={styles.rewardModalViewDismiss}
+            onPress={() => {
+              this.setModalVisible(rewardID, false);
+            }}>
+          </TouchableOpacity>
+          <View
+            style={styles.rewardModalView}
+          >
+            <View
+              style={styles.rewardModalViewContents}
+            >
+              <Text
+                style={styles.rewardModalViewTitle}
+              >
+                {rewardTitles[rewardCount]}
+              </Text>
+
+              <TouchableOpacity
+                style={styles.rewardModalCloseBtn}
+                onPress={() => {
+                  this.setModalVisible(rewardID, false);
+                }}>
+                <Icon.Ionicons name={'ios-close'}  size={50} color="#aaaaaa"/>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       );
+      this.state[`reward${rewardCount}ModalVisible`] = false;
     }
 
     return (
@@ -171,4 +232,46 @@ const styles = StyleSheet.create({
     minWidth: deviceWidth * 0.45,
     minHeight: deviceWidth * 0.45,
   },
+  rewardModal: {
+  },
+  rewardModalViewDismiss: {
+    height: "40%",
+    opacity: 0.0,
+  },
+  rewardModalView: {
+    height: "70%",
+    width: deviceWidth * 0.92,
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    backgroundColor: '#ffffff',
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: {
+    	width: 0,
+    	height: 0,
+    },
+    shadowOpacity: 0.51,
+    shadowRadius: 13.16,
+    elevation: 20,
+  },
+  rewardModalViewContents: {
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  rewardModalViewTitle: {
+    fontSize: 30
+  },
+  rewardModalCloseBtn: {
+    ...Platform.select({
+      ios: {
+        marginTop: "-13%",
+        paddingBottom: "10%",
+        left: "42%",
+      },
+      android: {
+        marginTop: "-13%",
+        left: "41%",
+      }
+    }),
+  }
 });
