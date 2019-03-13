@@ -4,7 +4,7 @@ import { ExpoLinksView } from '@expo/samples';
 
 export default class RewardsScreen extends React.Component {
   static navigationOptions = {
-    title: 'Rewards',
+    title: 'Rewards           ',
   };
 
   render() {
