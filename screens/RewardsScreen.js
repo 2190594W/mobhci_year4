@@ -26,6 +26,7 @@ export default class RewardsScreen extends React.Component {
     focused: true,
     qrCodeVal: "This app is amazing!",
     qrCodeBrand: "xPlore",
+    qrCodeProduct: "Bike & Scooter",
     qrCodeVisible: false,
     qrCodeLogo: require('../assets/images/icon.png'),
   };
@@ -63,6 +64,7 @@ export default class RewardsScreen extends React.Component {
         qrCodeVisible: true,
         qrCodeBrand: brand,
         qrCodeVal: name,
+        qrCodeProduct: name,
       });
     } catch (error) {
       console.error("Error with storing: ", error);
@@ -102,14 +104,45 @@ export default class RewardsScreen extends React.Component {
         {"Name": "Ham & Cheese Baguette", "Points": 52600, "Picture": require('../assets/images/rewardPics/greggsHamCheeseBag.png')},
         {"Name": "Mexican Chicken Baguette", "Points": 51800, "Picture": require('../assets/images/rewardPics/greggsMexChknBag.png')},
         {"Name": "Tandoori Chicken Baguette", "Points": 50300, "Picture": require('../assets/images/rewardPics/greggsTandooriChknBag.png')},
-        {"Name": "Roast Chicken Salad Baguette", "Points": 35900, "Picture": require('../assets/images/rewardPics/greggsChknSub.png')}
+        {"Name": "Roast Chicken Salad Baguette", "Points": 35900, "Picture": require('../assets/images/rewardPics/greggsChknSub.png')},
       ],
-      "costa": [],
-      "taco_mazama": [],
-      "pret_a_manger": [],
-      "spt_subway": [],
-      "tesco": [],
-      "starbucks": [],
+      "costa": [
+        {"Name": "Cappuccino", "Points": 16200, "Picture": require('../assets/images/rewardPics/costaCoffees.png')},
+        {"Name": "Latte", "Points": 19900, "Picture": require('../assets/images/rewardPics/costaCoffees.png')},
+        {"Name": "Flat White", "Points": 12600, "Picture": require('../assets/images/rewardPics/costaCoffees.png')},
+        {"Name": "Cortado", "Points": 7600, "Picture": require('../assets/images/rewardPics/costaCoffees.png')},
+      ],
+      "taco_mazama": [
+        {"Name": "Burrito", "Points": 64700, "Picture": require('../assets/images/rewardPics/tacoMazamaBurrito.png')},
+        {"Name": "Fajita", "Points": 61200, "Picture": require('../assets/images/rewardPics/tacoMazamaFajita.png')},
+        {"Name": "Quesadilla", "Points": 48900, "Picture": require('../assets/images/rewardPics/tacoMazamaQuesadilla.png')},
+        {"Name": "Tacos", "Points": 56700, "Picture": require('../assets/images/rewardPics/tacoMazamaTaco.png')},
+      ],
+      "pret_a_manger": [
+        {"Name": "Bang Bang Chicken Wrap", "Points": 43300, "Picture": require('../assets/images/rewardPics/pretBangBangWrap.png')},
+        {"Name": "Chakalaka Wrap", "Points": 34000, "Picture": require('../assets/images/rewardPics/pretChakalakaWrap.png')},
+        {"Name": "Red Thai Chicken Soup", "Points": 14500, "Picture": require('../assets/images/rewardPics/pretRedThaiSoup.png')},
+        {"Name": "Bakewell Slice", "Points": 46700, "Picture": require('../assets/images/rewardPics/pretBakewellSlice.png')},
+      ],
+      "spt_subway": [
+        {"Name": "Single Ticket", "Points": 19000, "Picture": require('../assets/images/rewardPics/sptTicket.png')},
+        {"Name": "Return Ticket", "Points": 27000, "Picture": require('../assets/images/rewardPics/sptTicket.png')},
+        {"Name": "Day Ticket", "Points": 44000, "Picture": require('../assets/images/rewardPics/sptTicket.png')},
+        {"Name": "SPT Card Topup (£5)", "Points": 55000, "Picture": require('../assets/images/rewardPics/sptCard.png')},
+        {"Name": "SPT Card Topup (£10)", "Points": 110000, "Picture": require('../assets/images/rewardPics/sptCard.png')},
+        {"Name": "SPT Card Topup (£20)", "Points": 220000, "Picture": require('../assets/images/rewardPics/sptCard.png')},
+      ],
+      "tesco": [
+        {"Name": "Clubcard Points (+50)", "Points": 10000, "Picture": require('../assets/images/rewardPics/tescoClubcard.png')},
+        {"Name": "Clubcard Points (+150)", "Points": 30000, "Picture": require('../assets/images/rewardPics/tescoClubcard.png')},
+        {"Name": "Clubcard Points (+300)", "Points": 60000, "Picture": require('../assets/images/rewardPics/tescoClubcard.png')},
+        {"Name": "Clubcard Points (+600)", "Points": 120000, "Picture": require('../assets/images/rewardPics/tescoClubcard.png')},
+        {"Name": "Clubcard Points (+1200)", "Points": 240000, "Picture": require('../assets/images/rewardPics/tescoClubcard.png')},
+        {"Name": "Clubcard Points (+2400)", "Points": 480000, "Picture": require('../assets/images/rewardPics/tescoClubcard.png')},
+      ],
+      "starbucks": [
+
+      ],
       "boots": [],
       "waitrose": [],
       "subway": [],
@@ -292,6 +325,7 @@ export default class RewardsScreen extends React.Component {
               style={styles.qrModalViewContents}
             >
               <Text style={styles.qrModalTitle}>{this.state.qrCodeBrand}</Text>
+              <Text style={styles.qrModalProduct}>{this.state.qrCodeProduct}</Text>
               <TouchableOpacity
                 style={styles.qrModalCloseBtn}
                 onPress={() => {
@@ -493,7 +527,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#000"
   },
   qrModalView: {
-    height: "60%",
+    height: "65%",
     width: deviceWidth * 0.92,
     marginLeft: deviceWidth * 0.04,
     marginRight: deviceWidth * 0.04,
@@ -518,8 +552,12 @@ const styles = StyleSheet.create({
   },
   qrModalTitle: {
     fontSize: 30,
-    marginTop: "5%",
-    marginBottom: "10%",
+    marginTop: "3%",
+  },
+  qrModalProduct: {
+    fontSize: 22,
+    marginTop: "1%",
+    marginBottom: "4%",
   },
   qrModalCloseBtn: {
     ...Platform.select({
