@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { WebBrowser, MapView, Location, Permissions, Icon } from 'expo';
 import { getDistance } from 'geolib';
-import AnimateNumber from '@bankify/react-native-animate-number'
+import AnimateNumber from '@bankify/react-native-animate-number';
 
 import { MonoText } from '../components/StyledText';
 
@@ -59,16 +59,12 @@ export default class MapScreen extends React.Component {
     } else {
       this.setState({ hasLocationPermissions: true });
     }
-    console.log("got location");
     let location = await Location.getCurrentPositionAsync({});
     let mRegion = { latitude: location.coords.latitude, longitude: location.coords.longitude, latitudeDelta: 0.0922, longitudeDelta: 0.0421 };
 
     this.setState({ locationResult: JSON.stringify(location) });
     this.setState({ currentMapRegion: mRegion });
     this.setState({ currentUserLocation: mRegion });
-
-    console.log(this.state.locationResult);
-    console.log(this.state.currentMapRegion);
 
     // Center the map on the location we just fetched.
     // this.setState({mapRegion: mRegion}); // uncomment to 'snap' to current location
@@ -83,7 +79,7 @@ export default class MapScreen extends React.Component {
         console.info("Updated score from storage");
       }
     } catch (error) {
-      console.log("Error with retrieving score: ", error);
+      console.error("Error with retrieving score: ", error);
     }
   };
 
@@ -103,7 +99,7 @@ export default class MapScreen extends React.Component {
         console.info("Updated transport from storage");
       }
     } catch (error) {
-      console.log("Error with retrieving transport: ", error);
+      console.error("Error with retrieving transport: ", error);
     }
   };
 
@@ -113,11 +109,10 @@ export default class MapScreen extends React.Component {
     this.setState({
       startLocation: this.state.currentMapRegion,
     });
-    (this.state.recordingRoute) ? console.log("finished route") : console.log("started route");
+    (this.state.recordingRoute) ? console.info("finished route") : console.info("started route");
     this.setState({
       recordingRoute: !this.state.recordingRoute,
     });
-    console.log(this._mapView.props.followsUserLocation);
   };
 
   _onUserLocationChange = async (event) => {
@@ -133,7 +128,6 @@ export default class MapScreen extends React.Component {
           } else {
             let distanceTravelled = getDistance(this.state.lastValidCoord, coords, 0.1, 3);
             if (distanceTravelled > DISTANCE_THRESHOLD) {
-              console.log(distanceTravelled);
               this.setState({ lastValidCoord: coords });
               this.state.currentTravelDistance += distanceTravelled;
               let currScore = this.state.currentTravelScore + (distanceTravelled * this.state.transportMultiplier);
@@ -141,9 +135,8 @@ export default class MapScreen extends React.Component {
                 this.state.currentTravelScore = currScore;
                 await AsyncStorage.setItem('@xPlore_Store:currScore', currScore.toFixed(1));
               } catch (error) {
-                console.log("Error with storing: ", error);
+                console.error("Error with storing: ", error);
               }
-
             }
           }
         }
@@ -164,7 +157,7 @@ export default class MapScreen extends React.Component {
       });
       await AsyncStorage.setItem('@xPlore_Store:currTransport', newTransport);
     } catch (error) {
-      console.log("Error with storing transport: ", error);
+      console.error("Error with storing transport: ", error);
     }
   };
 
