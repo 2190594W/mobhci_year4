@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, StyleSheet, View, Text, Animated, TouchableWithoutFeedback, Dimensions, AsyncStorage } from 'react-native';
+import { Image, StyleSheet, View, Text, Animated, TouchableWithoutFeedback, Dimensions, AsyncStorage, TouchableOpacity } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import { SocialIcon } from 'react-native-elements';
 import { NavigationEvents } from 'react-navigation';
@@ -25,6 +25,14 @@ export default class HomeScreen extends React.Component {
       {toValue: 0}
     ).start();
     this.setState({ loginText: 'Welcome Ben Stevenson!' });
+  }
+
+  logout = () => {
+    Animated.timing(
+      this.state.fade,
+      {toValue: 1}
+    ).start();
+    this.setState({ loginText: 'Login:' });
   }
 
   changeMode = () => {
@@ -94,9 +102,9 @@ export default class HomeScreen extends React.Component {
       outputRange: [-100, (width / 2) - 170]
     });
     if (this.state.appMode === 'bicycle') {
-      imgSrc = <Image style={styles.welcomeImage} source={require('../assets/images/bikeLogo3.png')} />;
+      imgSrc = <Image style={styles.transportImage} source={require('../assets/images/bikeLogo3.png')} />;
     } else if (this.state.appMode === 'scooter') {
-      imgSrc = <Image style={styles.welcomeImage} source={require('../assets/images/icon.png')} />;
+      imgSrc = <Image style={styles.transportImage} source={require('../assets/images/icon.png')} />;
     }
     return (
       <View style={styles.container}>
@@ -109,9 +117,21 @@ export default class HomeScreen extends React.Component {
             style={styles.welcomeImage}
           />
         </View>
-        <Text style={styles.login}>
-          {this.state.loginText}
-        </Text>
+        <View style={styles.loginContainer}>
+          <Text style={styles.login}>
+            {this.state.loginText}
+          </Text>
+          {this.state.loginText !== "Login:" &&
+            <TouchableOpacity
+              style={styles.logoutBtn}
+              onPress={() => {
+                this.logout();
+              }}
+            >
+              <Text style={{color: "#ffffff"}}>Logout</Text>
+            </TouchableOpacity>
+          }
+        </View>
         <Animated.View style={[styles.socials, {opacity: this.state.fade}]}>
           <SocialIcon
             type='facebook'
@@ -168,11 +188,21 @@ const styles = StyleSheet.create({
     marginTop: 3,
     marginLeft: -10,
   },
+  transportImage: {
+    width: 400,
+    height: 240,
+    resizeMode: 'contain',
+    marginTop: 3,
+    marginLeft: -10,
+  },
   login: {
     marginLeft: 10,
-    fontSize: 24,
+    fontSize: 28,
     fontFamily: 'ubuntu',
     color: '#4d4d4d'
+  },
+  loginContainer: {
+    alignItems: 'center',
   },
   socials: {
     flex: 1,
@@ -187,5 +217,14 @@ const styles = StyleSheet.create({
     flex: 2,
     alignItems: 'center',
     justifyContent: 'center'
+  },
+  logoutBtn: {
+    flex: 1,
+    padding: "5%",
+    paddingTop: "-1%",
+    marginTop: "2%",
+    backgroundColor: "#960000",
+    alignItems: 'center',
+    borderRadius: 10,
   },
 });
