@@ -16,6 +16,7 @@ import { Icon } from 'expo';
 import { NavigationEvents } from 'react-navigation';
 
 import AnimateNumber from '@bankify/react-native-animate-number';
+import QRCode from 'react-native-qrcode-svg';
 
 const deviceWidth = Dimensions.get('window').width;
 
@@ -23,6 +24,10 @@ export default class RewardsScreen extends React.Component {
   state = {
     currentTravelScore: 0,
     focused: true,
+    qrCodeVal: "This app is amazing!",
+    qrCodeBrand: "xPlore",
+    qrCodeVisible: false,
+    qrCodeLogo: require('../assets/images/icon.png'),
   };
 
   componentDidMount() {
@@ -47,7 +52,7 @@ export default class RewardsScreen extends React.Component {
     }
   };
 
-  _debitCurrScore = async (purchasePoints) => {
+  _debitCurrScore = async (purchasePoints, brand, name) => {
     let currScore = this.state.currentTravelScore;
     let newScore = currScore - purchasePoints;
     if (newScore < 1) return;
@@ -55,6 +60,9 @@ export default class RewardsScreen extends React.Component {
       await AsyncStorage.setItem('@xPlore_Store:currScore', newScore.toFixed(1));
       this.setState({
         currentTravelScore: newScore,
+        qrCodeVisible: true,
+        qrCodeBrand: brand,
+        qrCodeVal: name,
       });
     } catch (error) {
       console.error("Error with storing: ", error);
@@ -127,6 +135,7 @@ export default class RewardsScreen extends React.Component {
       let brandPckgs = rewardPckgs[slugTitles[brandCount]];
       for (var pckgCount = 0; pckgCount < brandPckgs.length; pckgCount++) {
         let currPckg = brandPckgs[pckgCount];
+        let currBrandName = rewardTitles[brandCount];
         rewardProds[slugTitles[brandCount]].push(
           <View
             style={styles.productContainer}
@@ -154,7 +163,7 @@ export default class RewardsScreen extends React.Component {
                 disabled={(this.state.currentTravelScore > currPckg["Points"]) ? false : true}
                 style={[styles.productPurchase, (this.state.currentTravelScore > currPckg["Points"]) ? {} : {backgroundColor: '#165139'}]}
                 onPress={() => {
-                  this._debitCurrScore(currPckg["Points"]);
+                  this._debitCurrScore(currPckg["Points"], currBrandName, currPckg["Name"]);
                 }}
               >
                 <Icon.Ionicons name={(this.state.currentTravelScore > currPckg["Points"]) ? 'ios-basket' : 'ios-battery-dead'}  size={30} color="#ffffff"/>
@@ -258,6 +267,50 @@ export default class RewardsScreen extends React.Component {
             {rewards}
           </View>
         </ScrollView>
+        <Modal
+          key={'qrCodeModal'}
+          transparent={true}
+          animationType="fade"
+          transparent={true}
+          visible={this.state.qrCodeVisible}
+          onRequestClose={() => {
+            Alert.alert('Modal has been closed.');
+          }}
+        >
+          <TouchableOpacity
+            style={styles.qrModalViewDismiss}
+            onPress={() => {
+              this.setState({
+                qrCodeVisible: false,
+              });
+            }}>
+          </TouchableOpacity>
+          <View
+            style={styles.qrModalView}
+          >
+            <View
+              style={styles.qrModalViewContents}
+            >
+              <Text style={styles.qrModalTitle}>{this.state.qrCodeBrand}</Text>
+              <TouchableOpacity
+                style={styles.qrModalCloseBtn}
+                onPress={() => {
+                  this.setState({
+                    qrCodeVisible: false,
+                  });
+                }}>
+                <Icon.Ionicons name={'ios-close'}  size={50} color="#aaaaaa"/>
+              </TouchableOpacity>
+              <QRCode
+                value={this.state.qrCodeVal}
+                logo={this.state.qrCodeLogo}
+                size={300}
+                logoSize={65}
+                color={'#3bcd91'}
+              />
+            </View>
+          </View>
+        </Modal>
       </View>
     );
   }
@@ -432,5 +485,54 @@ const styles = StyleSheet.create({
     height: "100%",
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  qrModalViewDismiss: {
+    height: "100%",
+    opacity: 0.4,
+    zIndex: 200,
+    backgroundColor: "#000"
+  },
+  qrModalView: {
+    height: "60%",
+    width: deviceWidth * 0.92,
+    marginLeft: deviceWidth * 0.04,
+    marginRight: deviceWidth * 0.04,
+    marginTop: "50%",
+    marginBottom: "10%",
+    backgroundColor: '#ffffff',
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: {
+    	width: 0,
+    	height: 12,
+    },
+    shadowOpacity: 0.58,
+    shadowRadius: 16.00,
+    elevation: 24,
+    zIndex: 400,
+    position: 'absolute',
+  },
+  qrModalViewContents: {
+    alignItems: 'center',
+    margin: 20,
+  },
+  qrModalTitle: {
+    fontSize: 30,
+    marginTop: "5%",
+    marginBottom: "10%",
+  },
+  qrModalCloseBtn: {
+    ...Platform.select({
+      ios: {
+        marginTop: "-28%",
+        paddingBottom: "20%",
+        left: "46%",
+      },
+      android: {
+        marginTop: "-28%",
+        left: "43%",
+        marginBottom: "20%",
+      }
+    }),
   },
 });
