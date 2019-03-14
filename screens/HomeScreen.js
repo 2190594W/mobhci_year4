@@ -1,113 +1,121 @@
 import React from 'react';
-import {
-  Image,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import { WebBrowser } from 'expo';
+import { Image, StyleSheet, View, Text, Animated, TouchableWithoutFeedback, Dimensions } from 'react-native';
+import * as Animatable from 'react-native-animatable';
+import { SocialIcon } from 'react-native-elements';
 
-import { MonoText } from '../components/StyledText';
+const { width } = Dimensions.get('window');
 
 export default class HomeScreen extends React.Component {
   static navigationOptions = {
     header: null,
   };
 
+  state = {
+    appMode: 'scooter',
+    fade: new Animated.Value(1),
+    xTranslateOff: new Animated.Value(0),
+    xTranslateOn: new Animated.Value(0),
+    loginText: 'Login:'
+  };
+
+  login = () => {
+    Animated.timing(
+      this.state.fade,
+      {toValue: 0}
+    ).start();
+    this.setState({ loginText: 'Welcome John Doe' });
+  }
+
+  changeMode = () => {
+    this.view.slideOutRight();
+    // Animated.sequence([
+    // Animated.timing(
+    //   this.state.xTranslateOff,
+    //   {toValue: 1}
+    // ),
+    // Animated.timing(
+    //   this.state.xTranslateOn,
+    //   {toValue: 1}
+    // )]).start();
+  }
+
+  componentDidMount = () => {
+    // Animated.timing(
+    //   this.state.xTranslateOn,
+    //   {toValue: 1}
+    // ).start();
+  }
+
+  handleViewRef = ref => this.view = ref;
+
   render() {
+    // moveXOff = this.state.xTranslateOff.interpolate({
+    //   inputRange: [0, 1],
+    //   outputRange: [(width / 2) - 170, width + 100]
+    // });
+    // moveXOn = this.state.xTranslateOn.interpolate({
+    //   inputRange: [0, 1],
+    //   outputRange: [-100, (width / 2) - 170]
+    // });
+    if (this.state.appMode === 'bike') {
+      imgSrc = <Image style={styles.welcomeImage} source={require('../assets/images/logo_long.png')} />;
+    } else if (this.state.appMode === 'scooter') {
+      imgSrc = <Image style={styles.welcomeImage} source={require('../assets/images/icon.png')} />;
+    }
     return (
       <View style={styles.container}>
-        <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-          <View style={styles.welcomeContainer}>
-            <Image
-              source={require('../assets/images/long_logo_10.png')}
-              style={styles.welcomeImage}
-            />
-          </View>
-
-          <View style={styles.getStartedContainer}>
-            {this._maybeRenderDevelopmentModeWarning()}
-
-            <Text style={styles.getStartedText}>Get started by opening</Text>
-
-            <View style={[styles.codeHighlightContainer, styles.homeScreenFilename]}>
-              <MonoText style={styles.codeHighlightText}>screens/HomeScreen.js</MonoText>
-            </View>
-
-            <Text style={styles.getStartedText}>
-              Change this text and your app will automatically reload.
-            </Text>
-          </View>
-
-          <View style={styles.helpContainer}>
-            <TouchableOpacity onPress={this._handleHelpPress} style={styles.helpLink}>
-              <Text style={styles.helpLinkText}>Help, it didn’t automatically reload!</Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-
-        <View style={styles.tabBarInfoContainer}>
-          <Text style={styles.tabBarInfoText}>This is a tab bar. You can edit it in:</Text>
-
-          <View style={[styles.codeHighlightContainer, styles.navigationFilename]}>
-            <MonoText style={styles.codeHighlightText}>navigation/MainTabNavigator.js</MonoText>
-          </View>
+        <View style={styles.welcomeContainer}>
+          <Image
+            source={require('../assets/images/long_logo_10.png')}
+            style={styles.welcomeImage}
+          />
+        </View>
+        <Text style={styles.login}>
+          {this.state.loginText}
+        </Text>
+        <Animated.View style={[styles.socials, {opacity: this.state.fade}]}>
+          <SocialIcon 
+            type='facebook'
+            light
+            onPress={this.login}
+          />
+          <SocialIcon 
+            type='medium'
+            light
+            onPress={this.login}
+          />
+          <SocialIcon 
+            type='github'
+            light
+            onPress={this.login}
+          />
+          <SocialIcon 
+            type='stack-overflow'
+            light
+            onPress={this.login}
+          />
+          <SocialIcon 
+            type='instagram'
+            light
+            onPress={this.login}
+          />
+        </Animated.View>
+        <View style={styles.appMode}>
+          <TouchableWithoutFeedback onPress={this.changeMode}>
+            <Animatable.View ref={this.handleViewRef} duration={1000} transition={{translateX: 100}}>
+              {imgSrc}
+            </Animatable.View>
+          </TouchableWithoutFeedback>
         </View>
       </View>
     );
   }
-
-  _maybeRenderDevelopmentModeWarning() {
-    if (__DEV__) {
-      const learnMoreButton = (
-        <Text onPress={this._handleLearnMorePress} style={styles.helpLinkText}>
-          Learn more
-        </Text>
-      );
-
-      return (
-        <Text style={styles.developmentModeText}>
-          Development mode is enabled, your app will be slower but you can use useful development
-          tools. {learnMoreButton}
-        </Text>
-      );
-    } else {
-      return (
-        <Text style={styles.developmentModeText}>
-          You are not in development mode, your app will run at full speed.
-        </Text>
-      );
-    }
-  }
-
-  _handleLearnMorePress = () => {
-    WebBrowser.openBrowserAsync('https://docs.expo.io/versions/latest/guides/development-mode');
-  };
-
-  _handleHelpPress = () => {
-    WebBrowser.openBrowserAsync(
-      'https://docs.expo.io/versions/latest/guides/up-and-running.html#can-t-see-your-changes'
-    );
-  };
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-  },
-  developmentModeText: {
-    marginBottom: 20,
-    color: 'rgba(0,0,0,0.4)',
-    fontSize: 14,
-    lineHeight: 19,
-    textAlign: 'center',
-  },
-  contentContainer: {
-    paddingTop: 30,
   },
   welcomeContainer: {
     alignItems: 'center',
@@ -121,64 +129,24 @@ const styles = StyleSheet.create({
     marginTop: 3,
     marginLeft: -10,
   },
-  getStartedContainer: {
+  login: {
+    marginLeft: 10,
+    fontSize: 24,
+    fontFamily: 'ubuntu',
+    color: '#4d4d4d'
+  },
+  socials: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
-    marginHorizontal: 50,
+    backgroundColor: '#49cd97',
+    margin: 10,
+    borderRadius: 6,
   },
-  homeScreenFilename: {
-    marginVertical: 7,
-  },
-  codeHighlightText: {
-    color: 'rgba(96,100,109, 0.8)',
-  },
-  codeHighlightContainer: {
-    backgroundColor: 'rgba(0,0,0,0.05)',
-    borderRadius: 3,
-    paddingHorizontal: 4,
-  },
-  getStartedText: {
-    fontSize: 17,
-    color: 'rgba(96,100,109, 1)',
-    lineHeight: 24,
-    textAlign: 'center',
-  },
-  tabBarInfoContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    ...Platform.select({
-      ios: {
-        shadowColor: 'black',
-        shadowOffset: { height: -3 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-      },
-      android: {
-        elevation: 20,
-      },
-    }),
+  appMode: {
+    flex: 2,
     alignItems: 'center',
-    backgroundColor: '#fbfbfb',
-    paddingVertical: 20,
-  },
-  tabBarInfoText: {
-    fontSize: 17,
-    color: 'rgba(96,100,109, 1)',
-    textAlign: 'center',
-  },
-  navigationFilename: {
-    marginTop: 5,
-  },
-  helpContainer: {
-    marginTop: 15,
-    alignItems: 'center',
-  },
-  helpLink: {
-    paddingVertical: 15,
-  },
-  helpLinkText: {
-    fontSize: 14,
-    color: '#2e78b7',
+    justifyContent: 'center'
   },
 });
