@@ -92,13 +92,17 @@ export default class MapScreen extends React.Component {
       const transport = await AsyncStorage.getItem('@xPlore_Store:currTransport');
       if (transport !== null) {
         if (transport === 'scooter') {
-          this.state.currentBicycle = false;
-          this.state.currentScooter = true;
-          this.state.transportMultiplier = 3;
+          this.setState({
+            currentBicycle: false,
+            currentScooter: true,
+            transportMultiplier: 3,
+          });
         } else {
-          this.state.currentBicycle = true;
-          this.state.currentScooter = false;
-          this.state.transportMultiplier = 1.5;
+          this.setState({
+            currentBicycle: true,
+            currentScooter: false,
+            transportMultiplier: 1.5,
+          });
         }
         console.info("Updated transport from storage");
       }
