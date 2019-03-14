@@ -173,7 +173,10 @@ export default class MapScreen extends React.Component {
     return (
       <View style={styles.container}>
         <NavigationEvents
-          onDidFocus={payload => this._getLastScore()}
+          onDidFocus={payload => {
+            this._getLastScore();
+            this._getCurrentTransport();
+          }}
         />
         <MapView
           ref = {(mapView) => { this._mapView = mapView; }}
@@ -212,7 +215,7 @@ export default class MapScreen extends React.Component {
             value={parseFloat(this.state.currentTravelScore)}
             timing="easeOut"
             renderContent={(value: number) => (
-              <Text style={styles.scoreText}>{value} (+{this.state.transportMultiplier})</Text>
+              <Text style={styles.scoreText}>{value} (<Text style={{fontStyle: 'italic', fontSize: 20}}>x{this.state.transportMultiplier}</Text>)</Text>
             )}
             formatter={(val) => {
               return parseFloat(val).toFixed(1).replace(/\B(?=(\d{3})+(?!\d))/g, ",")

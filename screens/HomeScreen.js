@@ -1,7 +1,8 @@
 import React from 'react';
-import { Image, StyleSheet, View, Text, Animated, TouchableWithoutFeedback, Dimensions } from 'react-native';
+import { Image, StyleSheet, View, Text, Animated, TouchableWithoutFeedback, Dimensions, AsyncStorage } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import { SocialIcon } from 'react-native-elements';
+import { NavigationEvents } from 'react-navigation';
 
 const { width } = Dimensions.get('window');
 
@@ -23,11 +24,15 @@ export default class HomeScreen extends React.Component {
       this.state.fade,
       {toValue: 0}
     ).start();
-    this.setState({ loginText: 'Welcome John Doe' });
+    this.setState({ loginText: 'Welcome Ben Stevenson!' });
   }
 
   changeMode = () => {
-    this.view.slideOutRight();
+    this.setState({
+      appMode: (this.state.appMode === 'bicycle') ? 'scooter' : 'bicycle',
+    });
+    this._toggleTransportType();
+    // this.view.slideOutRight();
     // Animated.sequence([
     // Animated.timing(
     //   this.state.xTranslateOff,
@@ -36,34 +41,68 @@ export default class HomeScreen extends React.Component {
     // Animated.timing(
     //   this.state.xTranslateOn,
     //   {toValue: 1}
-    // )]).start();
+    // )
+    // ]).start();
   }
 
   componentDidMount = () => {
-    // Animated.timing(
-    //   this.state.xTranslateOn,
-    //   {toValue: 1}
-    // ).start();
+    Animated.timing(
+      this.state.xTranslateOn,
+      {toValue: 1}
+    ).start();
+    this._getCurrentTransport();
   }
+
+  _getCurrentTransport = async () => {
+    try {
+      const transport = await AsyncStorage.getItem('@xPlore_Store:currTransport');
+      if (transport !== null) {
+        this.setState({
+          appMode: transport,
+        });
+        console.info("Updated transport from storage");
+      }
+    } catch (error) {
+      console.error("Error with retrieving transport: ", error);
+    }
+  };
+
+  _toggleTransportType = async (event) => {
+    let newTransport = "scooter";
+    if (this.state.appMode === "scooter") {
+      newTransport = "bicycle";
+    }
+    try {
+      this.setState({
+        appMode: newTransport,
+      });
+      await AsyncStorage.setItem('@xPlore_Store:currTransport', newTransport);
+    } catch (error) {
+      console.error("Error with storing transport: ", error);
+    }
+  };
 
   handleViewRef = ref => this.view = ref;
 
   render() {
-    // moveXOff = this.state.xTranslateOff.interpolate({
-    //   inputRange: [0, 1],
-    //   outputRange: [(width / 2) - 170, width + 100]
-    // });
-    // moveXOn = this.state.xTranslateOn.interpolate({
-    //   inputRange: [0, 1],
-    //   outputRange: [-100, (width / 2) - 170]
-    // });
-    if (this.state.appMode === 'bike') {
-      imgSrc = <Image style={styles.welcomeImage} source={require('../assets/images/logo_long.png')} />;
+    moveXOff = this.state.xTranslateOff.interpolate({
+      inputRange: [0, 1],
+      outputRange: [(width / 2) - 170, width + 100]
+    });
+    moveXOn = this.state.xTranslateOn.interpolate({
+      inputRange: [0, 1],
+      outputRange: [-100, (width / 2) - 170]
+    });
+    if (this.state.appMode === 'bicycle') {
+      imgSrc = <Image style={styles.welcomeImage} source={require('../assets/images/bikeLogo3.png')} />;
     } else if (this.state.appMode === 'scooter') {
       imgSrc = <Image style={styles.welcomeImage} source={require('../assets/images/icon.png')} />;
     }
     return (
       <View style={styles.container}>
+        <NavigationEvents
+          onDidFocus={payload => this._getCurrentTransport()}
+        />
         <View style={styles.welcomeContainer}>
           <Image
             source={require('../assets/images/long_logo_10.png')}
@@ -74,27 +113,27 @@ export default class HomeScreen extends React.Component {
           {this.state.loginText}
         </Text>
         <Animated.View style={[styles.socials, {opacity: this.state.fade}]}>
-          <SocialIcon 
+          <SocialIcon
             type='facebook'
             light
             onPress={this.login}
           />
-          <SocialIcon 
+          <SocialIcon
             type='medium'
             light
             onPress={this.login}
           />
-          <SocialIcon 
+          <SocialIcon
             type='github'
             light
             onPress={this.login}
           />
-          <SocialIcon 
+          <SocialIcon
             type='stack-overflow'
             light
             onPress={this.login}
           />
-          <SocialIcon 
+          <SocialIcon
             type='instagram'
             light
             onPress={this.login}
@@ -102,9 +141,9 @@ export default class HomeScreen extends React.Component {
         </Animated.View>
         <View style={styles.appMode}>
           <TouchableWithoutFeedback onPress={this.changeMode}>
-            <Animatable.View ref={this.handleViewRef} duration={1000} transition={{translateX: 100}}>
+            <Animated.View ref={this.handleViewRef} duration={1000}>
               {imgSrc}
-            </Animatable.View>
+            </Animated.View>
           </TouchableWithoutFeedback>
         </View>
       </View>

@@ -141,7 +141,10 @@ export default class RewardsScreen extends React.Component {
         {"Name": "Clubcard Points (+2400)", "Points": 480000, "Picture": require('../assets/images/rewardPics/tescoClubcard.png')},
       ],
       "starbucks": [
-
+        {"Name": "Cappuccino", "Points": 16200, "Picture": require('../assets/images/rewardPics/costaCoffees.png')},
+        {"Name": "Latte", "Points": 19900, "Picture": require('../assets/images/rewardPics/costaCoffees.png')},
+        {"Name": "Flat White", "Points": 12600, "Picture": require('../assets/images/rewardPics/costaCoffees.png')},
+        {"Name": "Cortado", "Points": 7600, "Picture": require('../assets/images/rewardPics/costaCoffees.png')},
       ],
       "boots": [],
       "waitrose": [],
