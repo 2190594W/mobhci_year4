@@ -10,6 +10,8 @@ import {
   AsyncStorage,
 } from 'react-native';
 import { WebBrowser, MapView, Location, Permissions, Icon } from 'expo';
+import { NavigationEvents } from 'react-navigation';
+
 import { getDistance } from 'geolib';
 import AnimateNumber from '@bankify/react-native-animate-number';
 
@@ -75,7 +77,9 @@ export default class MapScreen extends React.Component {
     try {
       const score = await AsyncStorage.getItem('@xPlore_Store:currScore');
       if (score !== null) {
-        this.state.currentTravelScore = parseFloat(score);
+        this.setState({
+          currentTravelScore: parseFloat(score),
+        });
         console.info("Updated score from storage");
       }
     } catch (error) {
@@ -168,6 +172,9 @@ export default class MapScreen extends React.Component {
   render() {
     return (
       <View style={styles.container}>
+        <NavigationEvents
+          onDidFocus={payload => this._getLastScore()}
+        />
         <MapView
           ref = {(mapView) => { this._mapView = mapView; }}
           style={{ flex: 1, marginBottom: this.state.marginBottom}}

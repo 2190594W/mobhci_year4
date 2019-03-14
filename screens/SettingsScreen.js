@@ -1,6 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, StyleSheet, Platform, View, Text, AsyncStorage } from 'react-native';
 import { Icon } from 'expo';
+import { NavigationEvents } from 'react-navigation';
 import { ExpoConfigView } from '@expo/samples';
 
 import AnimateNumber from '@bankify/react-native-animate-number';
@@ -64,6 +65,9 @@ export default class SettingsScreen extends React.Component {
      * content, we just wanted to give you a quick view of your config */
     return (
       <View style={styles.container}>
+        <NavigationEvents
+          onDidFocus={payload => this._getLastScore()}
+        />
         <View
           style={styles.scoreValue}
         >
